@@ -24,6 +24,9 @@ export const config = {
   /** YouTube Music language when a request doesn't say (the app always does). */
   lang: process.env.MUSIKE_LANG ?? "en",
   location: process.env.MUSIKE_LOCATION ?? "BR",
+  /** Prefer the muxed 360p format (itag 18) for audio streaming — set when YouTube's
+   * SABR enforcement 403s DASH audio-only formats on this network (datacenter IPs). */
+  audioMuxed: process.env.MUSIKE_AUDIO_MUXED === "1",
   /** HTTP for youtubei.js; the platform's own fetch here (the Android app passes its native one). */
   fetch: undefined as typeof fetch | undefined,
 };

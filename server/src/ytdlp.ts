@@ -121,10 +121,14 @@ function pickAudio(formats: RawFormat[]): RawFormat | undefined {
     audio.find((f) => f.format_id === "140") ??
     audio.filter((f) => f.ext === "m4a").sort((a, b) => (b.abr ?? 0) - (a.abr ?? 0))[0] ??
     audio.sort((a, b) => (b.abr ?? 0) - (a.abr ?? 0))[0];
-  // YouTube's SABR enforcement 403s DASH audio-only formats for licensed tracks when
-  // streaming from datacenter IPs (even with account cookies); the legacy muxed 360p
-  // format (itag 18) is not enforced. The <video> media element plays it fine.
-  return best ?? formats.find((f) => f.format_id === "18" && isHttps(f));
+  // When MUSIKE_AUDIO_MUXED=1 (datacenter IPs: YouTube's SABR enforcement 403s DASH
+  // audio-only formats for licensed tracks even with cookies), stream the legacy muxed
+  // 360p format (itag 18) instead — it is not enforced. The <video> element plays it fine.
+  if (config.audioMuxed) {
+    const muxed = formats.find((f) => f.format_id === "18" && isHttps(f));
+    if (muxed) return muxed;
+  }
+  return best;
 }
 
 function pickVideo(formats: RawFormat[]): RawFormat | undefined {
