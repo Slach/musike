@@ -117,11 +117,14 @@ function toStream(f: RawFormat, kind: "audio" | "video"): StreamFormat {
 function pickAudio(formats: RawFormat[]): RawFormat | undefined {
   const audio = formats.filter((f) => isAudioOnly(f) && isHttps(f));
   // AAC in MP4 plays everywhere, including iOS Safari. Opus/WebM is the fallback.
-  return (
+  const best =
     audio.find((f) => f.format_id === "140") ??
     audio.filter((f) => f.ext === "m4a").sort((a, b) => (b.abr ?? 0) - (a.abr ?? 0))[0] ??
-    audio.sort((a, b) => (b.abr ?? 0) - (a.abr ?? 0))[0]
-  );
+    audio.sort((a, b) => (b.abr ?? 0) - (a.abr ?? 0))[0];
+  // YouTube's SABR enforcement 403s DASH audio-only formats for licensed tracks when
+  // streaming from datacenter IPs (even with account cookies); the legacy muxed 360p
+  // format (itag 18) is not enforced. The <video> media element plays it fine.
+  return best ?? formats.find((f) => f.format_id === "18" && isHttps(f));
 }
 
 function pickVideo(formats: RawFormat[]): RawFormat | undefined {
